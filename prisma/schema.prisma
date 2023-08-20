@@ -66,6 +66,7 @@ model Tasks {
   updatedAt   DateTime  @updatedAt
   boardId     Int
   ownerId     Int?
+  position    Int?
   Boards      Boards    @relation(fields: [boardId], references: [id], onDelete: Cascade)
   User        Users?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   @@map("tasks")

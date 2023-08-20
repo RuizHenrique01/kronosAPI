@@ -11,7 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CreateTaskDto, EditTaskDto } from './dto';
+import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { TaskService } from './task.service';
 import { JwtGuard } from 'src/auth/guard';
 
@@ -37,7 +37,13 @@ export class TaskController {
     return await this.taskService.findOne(id);
   }
 
-  @Put('/:id')
+  @Put('/positions')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updatePositions(@Body() data: { tasks: Array<EditPositionTaskDto> }) {
+    return await this.taskService.updatePositions(data.tasks);
+  }
+
+  @Put('/update/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: EditTaskDto,

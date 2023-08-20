@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateTaskDto, EditTaskDto } from './dto';
+import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { BOARD_ERROR, TASK_ERROR } from 'src/error';
 import { UserService } from 'src/user/user.service';
 
@@ -24,6 +24,9 @@ export class TaskService {
       where: {
         id: data.boardId,
       },
+      include: {
+        Tasks: true,
+      },
     });
 
     if (!boardExist) {
@@ -31,7 +34,10 @@ export class TaskService {
     }
     try {
       const task = await this.prisma.tasks.create({
-        data: data,
+        data: {
+          ...data,
+          position: boardExist.Tasks.length,
+        },
       });
 
       return task;
@@ -83,6 +89,9 @@ export class TaskService {
           },
         },
       },
+      orderBy: {
+        position: 'asc',
+      },
     });
   }
 
@@ -99,8 +108,27 @@ export class TaskService {
       },
       data: data,
     });
-
     return task;
+  }
+
+  async updatePositions(data: Array<EditPositionTaskDto>) {
+    const promises = [];
+
+    for (const task of data) {
+      promises.push(
+        await this.prisma.tasks.update({
+          where: {
+            id: task.id,
+          },
+          data: {
+            position: task.position,
+            boardId: task.boardId,
+          },
+        }),
+      );
+    }
+
+    await Promise.all(promises);
   }
 
   async delete(id: number) {
