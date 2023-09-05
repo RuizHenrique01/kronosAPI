@@ -47,4 +47,10 @@ export class SprintController {
   async endSprint(@Param('id', ParseIntPipe) id: number) {
     return await this.sprintService.endSprint(id);
   }
+
+  @Get('/inProgress/:projectId')
+  async getInProgress(@Param('projectId', ParseIntPipe) projectId: number) {
+    const sprint = await this.sprintService.findSprintInProgress(projectId);
+    return { sprint: sprint };
+  }
 }

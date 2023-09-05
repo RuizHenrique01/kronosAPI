@@ -143,6 +143,23 @@ export class SprintService {
     return sprintUpdate;
   }
 
+  async findSprintInProgress(id: number) {
+    const sprint = await this.prisma.sprints.findFirst({
+      where: {
+        AND: [
+          {
+            finishDate: null,
+          },
+          {
+            projectId: id,
+          },
+        ],
+      },
+    });
+
+    return sprint;
+  }
+
   private foramatDate(startDate: Date, endDate: Date) {
     const startDay = startDate.getDate();
     const startMounth = startDate.getMonth() + 1;
