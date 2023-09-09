@@ -10,10 +10,15 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
 import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { TaskService } from './task.service';
 import { JwtGuard } from 'src/auth/guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtGuard)
 @Controller('task')
@@ -55,5 +60,19 @@ export class TaskController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.taskService.delete(id);
+  }
+
+  @Post('/:id/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 })],
+      }),
+    )
+    file: Express.Multer.File,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return await this.taskService.uploadFile(file, id);
   }
 }
