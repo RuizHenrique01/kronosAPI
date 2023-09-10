@@ -14,11 +14,14 @@ import {
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { TaskService } from './task.service';
 import { JwtGuard } from 'src/auth/guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 
 @UseGuards(JwtGuard)
 @Controller('task')
@@ -74,5 +77,28 @@ export class TaskController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return await this.taskService.uploadFile(file, id);
+  }
+
+  @Get('/:id/upload/:name')
+  async getUploadFile(
+    @Res({ passthrough: true }) res: Response,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('name') name: string,
+  ): Promise<StreamableFile> {
+    const file = await this.taskService.getUploadFile(id, name);
+    res.set({
+      'Content-Type': `application/${name.split('.').slice(-1)[0]}`,
+      'Content-Disposition': `attachment; filename="${name}"`,
+    });
+    return new StreamableFile(file);
+  }
+
+  @Delete('/:id/upload/:name')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteUploadFile(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('name') name: string,
+  ) {
+    await this.taskService.removeUploadFile(id, name);
   }
 }

@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBoardDto, EditBoardDto } from './dto';
 import { BOARD_ERROR, PROJECT_ERROR } from 'src/error';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import * as fs from 'fs';
 
 @Injectable()
 export class BoardService {
@@ -38,8 +39,8 @@ export class BoardService {
     }
   }
 
-  findAll(id: number) {
-    return this.prisma.boards.findMany({
+  async findAll(id: number) {
+    const allBoards = await this.prisma.boards.findMany({
       where: {
         projectId: id,
       },
@@ -58,6 +59,33 @@ export class BoardService {
         },
       },
     });
+
+    const dirFiles = `uploads/${id}`;
+
+    if (fs.existsSync(dirFiles)) {
+      for (const board of allBoards) {
+        const newTaks = [];
+        for (const task of board.Tasks) {
+          if (fs.existsSync(dirFiles + '/' + task.id)) {
+            const filesTask = fs.readdirSync(dirFiles + '/' + task.id);
+            const files = [];
+
+            for (const file of filesTask) {
+              files.push({
+                name: file,
+                buffer: fs.readFileSync(dirFiles + '/' + task.id + '/' + file),
+              });
+            }
+
+            newTaks.push({ ...task, files: files });
+          } else {
+            newTaks.push({ ...task, files: null });
+          }
+        }
+        board.Tasks = newTaks;
+      }
+    }
+    return allBoards;
   }
 
   async findOne(id: number) {

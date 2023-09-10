@@ -1,3 +1,4 @@
+import { join } from 'path';
 import {
   BadRequestException,
   ForbiddenException,
@@ -179,5 +180,34 @@ export class TaskService {
     }
 
     return file;
+  }
+
+  async getUploadFile(id: number, name: string) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}/${name}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    const file = fs.createReadStream(join(process.cwd(), fileNamePath));
+    return file;
+  }
+
+  async removeUploadFile(id: number, name: string) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}/${name}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    fs.rmSync(join(process.cwd(), fileNamePath));
   }
 }
