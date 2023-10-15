@@ -101,4 +101,11 @@ export class TaskController {
   ) {
     await this.taskService.removeUploadFile(id, name);
   }
+
+  @Get('/:id/files')
+  async getAllFile(@Param('id', ParseIntPipe) id: number) {
+    const files = await this.taskService.getAllFiles(id);
+
+    return files;
+  }
 }

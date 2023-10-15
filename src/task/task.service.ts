@@ -210,4 +210,29 @@ export class TaskService {
 
     fs.rmSync(join(process.cwd(), fileNamePath));
   }
+
+  async getAllFiles(id: number) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    const files = fs.readdirSync(fileNamePath);
+
+    const dataFiles = files.map((f) => {
+      const fileName = f.split('.');
+
+      return {
+        name: f,
+        type: fileName.splice(-1)[0],
+      };
+    });
+
+    return dataFiles;
+  }
 }
