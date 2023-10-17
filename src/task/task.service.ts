@@ -1,4 +1,6 @@
+import { join } from 'path';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,12 +9,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { BOARD_ERROR, TASK_ERROR } from 'src/error';
 import { UserService } from 'src/user/user.service';
+import * as fs from 'fs';
+import { BoardService } from 'src/board/board.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
+    private boardService: BoardService,
   ) {}
 
   async create(data: CreateTaskDto) {
@@ -138,5 +143,96 @@ export class TaskService {
         id: id,
       },
     });
+  }
+
+  async uploadFile(file: Express.Multer.File, id: number) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const currentPath = process.cwd();
+    const uploadPath = `${currentPath}/uploads`;
+    const projectPath = `${uploadPath}/${board.projectId}`;
+    const taskPath = `${projectPath}/${task.id}`;
+    const fileNamePath = `uploads/${board.projectId}/${task.id}/${file.originalname}`;
+
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+
+    if (!fs.existsSync(projectPath)) {
+      fs.mkdirSync(projectPath);
+    }
+
+    if (!fs.existsSync(taskPath)) {
+      fs.mkdirSync(taskPath);
+    }
+
+    try {
+      fs.appendFile(fileNamePath, Buffer.from(file.buffer), (err) => {
+        if (err) {
+          console.log('UPLOAD ERROR: ', err);
+          throw new Error(err.message);
+        }
+      });
+    } catch (err) {
+      throw new BadRequestException(TASK_ERROR.FAIL_TO_UPLOAD_FILE);
+    }
+
+    return file;
+  }
+
+  async getUploadFile(id: number, name: string) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}/${name}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    const file = fs.createReadStream(join(process.cwd(), fileNamePath));
+    return file;
+  }
+
+  async removeUploadFile(id: number, name: string) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}/${name}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    fs.rmSync(join(process.cwd(), fileNamePath));
+  }
+
+  async getAllFiles(id: number) {
+    const task = await this.findOne(id);
+
+    const board = await this.boardService.findOne(task.boardId);
+
+    const fileNamePath = `uploads/${board.projectId}/${task.id}`;
+
+    if (!fs.existsSync(fileNamePath)) {
+      throw new NotFoundException(TASK_ERROR.NOT_FOUND_FILE);
+    }
+
+    const files = fs.readdirSync(fileNamePath);
+
+    const dataFiles = files.map((f) => {
+      const fileName = f.split('.');
+
+      return {
+        name: f,
+        type: fileName.splice(-1)[0],
+      };
+    });
+
+    return dataFiles;
   }
 }
