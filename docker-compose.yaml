@@ -1,0 +1,9 @@
+version: "3.0"
+
+services:
+    kronosAPI:
+        build: .
+        image: kronos_api
+        container_name: kronosAPI
+        ports:
+          - "4000:4000"
