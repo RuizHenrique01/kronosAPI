@@ -87,7 +87,10 @@ export class TaskController {
   ): Promise<StreamableFile> {
     const file = await this.taskService.getUploadFile(id, name);
     res.set({
-      'Content-Type': `application/${name.split('.').slice(-1)[0]}`,
+      'Content-Type': `application/${name
+        .split('.')
+        .slice(-1)[0]
+        .toLowerCase()}`,
       'Content-Disposition': `attachment; filename="${name}"`,
     });
     return new StreamableFile(file);
