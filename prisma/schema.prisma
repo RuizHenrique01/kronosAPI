@@ -62,6 +62,7 @@ model Tasks {
   description String?   @db.VarChar(255)
   status      String?    @db.VarChar(20)
   endDate     DateTime? @db.Timestamptz(6)
+  dateConclusion DateTime? @db.Timestamptz(6)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   boardId     Int

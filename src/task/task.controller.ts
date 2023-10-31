@@ -111,4 +111,10 @@ export class TaskController {
 
     return files;
   }
+
+  @Put('/:id/complete')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async completeTask(@Param('id', ParseIntPipe) id: number) {
+    await this.taskService.completeTask(id);
+  }
 }

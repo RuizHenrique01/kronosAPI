@@ -235,4 +235,16 @@ export class TaskService {
 
     return dataFiles;
   }
+
+  async completeTask(id: number) {
+    const task = await this.findOne(id);
+    await this.prisma.tasks.update({
+      where: {
+        id: task.id,
+      },
+      data: {
+        dateConclusion: new Date(),
+      },
+    });
+  }
 }
