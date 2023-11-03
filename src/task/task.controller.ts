@@ -16,6 +16,8 @@ import {
   MaxFileSizeValidator,
   Res,
   StreamableFile,
+  Query,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { CreateTaskDto, EditPositionTaskDto, EditTaskDto } from './dto';
 import { TaskService } from './task.service';
@@ -110,5 +112,14 @@ export class TaskController {
     const files = await this.taskService.getAllFiles(id);
 
     return files;
+  }
+
+  @Put('/:id/complete')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async completeTask(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('isComplete', ParseBoolPipe) isComplete = true,
+  ) {
+    await this.taskService.completeTask(id, isComplete);
   }
 }
