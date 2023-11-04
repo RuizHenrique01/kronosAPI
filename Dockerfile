@@ -14,9 +14,7 @@ COPY . .
 
 RUN npm run build
 
-RUN npx prisma migrate dev
-
-RUN npx prisma db push
+RUN npx prisma db push --accept-data-loss
 
 FROM node:16.13-alpine
 
