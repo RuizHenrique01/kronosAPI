@@ -247,4 +247,43 @@ export class TaskService {
       },
     });
   }
+
+  async percentGraphicData(projectId: number) {
+    const data = await this.prisma.$queryRaw`SELECT 
+    (SELECT CAST(count(*) AS integer) from public.tasks as t inner join public.boards as b on t."boardId" = b.id where b."projectId" = p.id and b."name" = 'A Fazer') as "A Fazer",
+    (SELECT CAST(count(*) AS integer) from public.tasks as t inner join public.boards as b on t."boardId" = b.id where b."projectId" = p.id and b."name" = 'Fazendo') as "Fazendo",
+    (SELECT CAST(count(*) AS integer) from public.tasks as t inner join public.boards as b on t."boardId" = b.id where b."projectId" = p.id and b."name" = 'Concluído') as "Concluído"
+    from public.projects as p where p.id = ${projectId}`;
+
+    if (data[0]) {
+      return data[0];
+    }
+
+    return null;
+  }
+
+  async burndownGraphicData(projectId: number) {
+    const data = await this.prisma.$queryRaw`SELECT 
+    date_trunc('day', t."endDate") as day, 
+    CAST(count(*) AS integer) as "progresso total",
+    (
+    SELECT CAST(count(*) AS integer) FROM tasks as t2 
+    inner join public.boards b on "boardId" = b.id
+    WHERE t2."dateConclusion" <= date_trunc('day', t."endDate") and b."projectId" = ${projectId} and b."name" = 'Concluído' and "dateConclusion"  is not null 
+    ) as "progresso acumulado"
+FROM 
+    tasks as t
+inner join public.boards b on t."boardId" = b.id
+where b."projectId" = ${projectId} and (b."name" = 'A Fazer' or b."name" = 'Fazendo' or b."name" = 'Concluído')
+GROUP BY 
+    t."endDate" 
+ORDER BY 
+    t."endDate";`;
+
+    if (data) {
+      return data;
+    }
+
+    return null;
+  }
 }
