@@ -134,4 +134,16 @@ export class TaskController {
     const dataGraphic = await this.taskService.burndownGraphicData(id);
     return dataGraphic;
   }
+
+  @Get('/compareGraphic/:id')
+  async compareGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.compareGraphicData(id);
+    return dataGraphic;
+  }
+
+  @Get('/totalProgressGraphic/:id')
+  async totalProgressGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.totalProgressGraphicData(id);
+    return dataGraphic;
+  }
 }

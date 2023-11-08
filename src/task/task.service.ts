@@ -286,4 +286,42 @@ ORDER BY
 
     return null;
   }
+
+  async compareGraphicData(projectId: number) {
+    const data = await this.prisma.$queryRaw`SELECT 
+    date_trunc('day', t."endDate") as day, 
+    CAST(count(*) AS integer) as "tarefas planejadas",
+    (
+    SELECT CAST(count(*) AS integer) FROM tasks as t2 
+    inner join public.boards b on "boardId" = b.id
+    WHERE t2."dateConclusion" <= date_trunc('day', t."endDate") and b."projectId" = ${projectId} and b."name" = 'Concluído' and "dateConclusion"  is not null 
+    ) as "tarefas concluídas"
+FROM 
+    tasks as t
+inner join public.boards b on t."boardId" = b.id
+where b."projectId" = ${projectId} and (b."name" = 'A Fazer' or b."name" = 'Fazendo' or b."name" = 'Concluído')
+GROUP BY 
+    t."endDate" 
+ORDER BY 
+    t."endDate";`;
+
+    if (data) {
+      return data;
+    }
+
+    return null;
+  }
+
+  async totalProgressGraphicData(projectId: number) {
+    const data = await this.prisma.$queryRaw`SELECT 
+    (SELECT CAST(count(*) AS integer) from public.tasks as t inner join public.boards as b on t."boardId" = b.id where b."projectId" = p.id and b."name" in('Fazendo', 'A Fazer', 'Concluído')) as "Total de Tarefas",
+    (SELECT CAST(count(*) AS integer) from public.tasks as t inner join public.boards as b on t."boardId" = b.id where b."projectId" = p.id and b."name" = 'Concluído') as "Tarefas Concluídas"
+    from public.projects as p where p.id = ${projectId}`;
+
+    if (data) {
+      return data[0];
+    }
+
+    return null;
+  }
 }
