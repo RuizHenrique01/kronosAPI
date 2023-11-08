@@ -1,4 +1,4 @@
-FROM node:16 AS builder
+FROM node:16.13-alpine  AS builder
 
 # Create app directory
 WORKDIR /app
@@ -14,7 +14,7 @@ COPY . .
 
 CMD [ "npm", "run", "start:dev" ]
 
-FROM node:16
+FROM node:16.13-alpine
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/static ./static
