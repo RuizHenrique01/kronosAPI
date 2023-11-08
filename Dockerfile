@@ -1,4 +1,6 @@
-FROM node:16.13-alpine  AS builder
+FROM node:16.13-alpine3.15
+
+RUN apk --no-cache add --virtual .builds-deps build-base python3
 
 # Create app directory
 WORKDIR /app
@@ -8,13 +10,15 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install app dependencies
-RUN npm install
+RUN npm install --production && npm rebuild bcrypt --build-from-source && npm cache clean --force 
 
 COPY . .
 
-RUN npm run build
+RUN npm run build 
 
-FROM node:16.13-alpine
+FROM node:16.13-alpine3.15
+
+RUN apk --no-cache add --virtual .builds-deps build-base python3
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/static ./static
