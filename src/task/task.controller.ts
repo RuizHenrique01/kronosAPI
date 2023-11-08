@@ -122,4 +122,28 @@ export class TaskController {
   ) {
     await this.taskService.completeTask(id, isComplete);
   }
+
+  @Get('/percentGraphic/:id')
+  async percentGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.percentGraphicData(id);
+    return dataGraphic;
+  }
+
+  @Get('/burndownGraphic/:id')
+  async burndownGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.burndownGraphicData(id);
+    return dataGraphic;
+  }
+
+  @Get('/compareGraphic/:id')
+  async compareGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.compareGraphicData(id);
+    return dataGraphic;
+  }
+
+  @Get('/totalProgressGraphic/:id')
+  async totalProgressGraphicData(@Param('id', ParseIntPipe) id: number) {
+    const dataGraphic = await this.taskService.totalProgressGraphicData(id);
+    return dataGraphic;
+  }
 }
