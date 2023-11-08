@@ -1,5 +1,7 @@
 FROM node:16.13-alpine  AS builder
 
+RUN apk add g++ make py3-pip
+
 # Create app directory
 WORKDIR /app
 
@@ -15,6 +17,8 @@ COPY . .
 RUN npm run build
 
 FROM node:16.13-alpine
+
+RUN apk add g++ make py3-pip
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/static ./static
